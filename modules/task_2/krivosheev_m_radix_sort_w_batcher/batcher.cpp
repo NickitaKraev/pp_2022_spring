@@ -1,14 +1,14 @@
 // Copyright 2022 Krivosheev Miron
 
-#include <vector>
-#include <string>
-#include <algorithm>
+#include <utility>
 #include <ctime>
 #include <random>
-#include <utility>
+#include <string>
+#include <vector>
+#include <algorithm>
 #include "../../../modules/task_2/krivosheev_m_radix_sort_w_batcher/batcher.h"
 
-#define THREADS 2
+#define THREADS 4
 
 bool checkSort(std::vector<int> arr) {
   return std::is_sorted(std::begin(arr), std::end(arr));
@@ -54,7 +54,7 @@ int getMax(std::vector<int>* vec) {
   return maxVal;
 }
 
-std::vector<int> EvenOddBatch(std::vector<int> vec1, std::vector<int> vec2) {
+std::vector<int> EvenOddBatch_omp(std::vector<int> vec1, std::vector<int> vec2) {
   int size1 = vec1.size();
   int size2 = vec2.size();
   int size = size1 + size2;
@@ -86,7 +86,7 @@ std::vector<int> EvenOddBatch(std::vector<int> vec1, std::vector<int> vec2) {
   return res;
 }
 
-std::vector<int> evenBatch(std::vector<int> vec1, std::vector<int> vec2) {
+std::vector<int> evenBatch_omp(std::vector<int> vec1, std::vector<int> vec2) {
   int size1 = vec1.size();
   int size2 = vec2.size();
   int res_size = size1 / 2 + size2 / 2 + size1 % 2 + size2 % 2;
@@ -123,7 +123,7 @@ std::vector<int> evenBatch(std::vector<int> vec1, std::vector<int> vec2) {
   return res;
 }
 
-std::vector<int> oddBatch(std::vector<int> vec1, std::vector<int> vec2) {
+std::vector<int> oddBatch_omp(std::vector<int> vec1, std::vector<int> vec2) {
   int size1 = vec1.size();
   int size2 = vec2.size();
   int res_size = size1 / 2 + size2 / 2;
@@ -160,15 +160,124 @@ std::vector<int> oddBatch(std::vector<int> vec1, std::vector<int> vec2) {
   return res;
 }
 
+int l = 0;
 std::vector<int> GetRandVector(int size) {
   if (size < 1)
     throw - 1;
-
+  int N;
+  if (l == 0 || l == 1) {
+    N = 1000;
+    l++;
+  } else {
+    N = 10000;
+    l++;
+    if (l == 4) l = 0;
+  }
   std::mt19937 gen;
   std::vector<int> vec(size);
-  for (int i = 0; i < size; i++) {
-    vec[i] = gen() % 100;
+  for (int i = 0; i < N; i++) {
+    vec[i] = gen() % N;
   }
 
   return vec;
+}
+
+std::vector<int> EvenOddBatch_seq(std::vector<int> vec1, std::vector<int> vec2) {
+  int size1 = vec1.size();
+  int size2 = vec2.size();
+  int size = size1 + size2;
+  std::vector<int> res(size);
+  int i = 0, j = 0, k = 0;
+
+  while ((j < size1) && (k < size2)) {
+    res[i] = vec1[j];
+    res[i + 1] = vec2[k];
+    i += 2;
+    j++;
+    k++;
+  }
+
+  if ((k >= size2) && (j < size1)) {
+    for (int l = i; l < size; l++) {
+      res[l] = vec1[j];
+      j++;
+    }
+  }
+
+  for (int i = 0; i < size - 1; i++) {
+    if (res[i] > res[i + 1]) {
+      std::swap(res[i], res[i + 1]);
+    }
+  }
+
+  return res;
+}
+
+std::vector<int> evenBatch_seq(std::vector<int> vec1, std::vector<int> vec2) {
+  int size1 = vec1.size();
+  int size2 = vec2.size();
+  int res_size = size1 / 2 + size2 / 2 + size1 % 2 + size2 % 2;
+  std::vector<int> res(res_size);
+  int i1 = 0;
+  int i2 = 0;
+  int i = 0;
+
+  while ((i1 < size1) && (i2 < size2)) {
+    if (vec1[i1] <= vec2[i2]) {
+      res[i] = vec1[i1];
+      i1 += 2;
+    } else {
+      res[i] = vec2[i2];
+      i2 += 2;
+    }
+    i++;
+  }
+
+  if (i1 >= size1) {
+    for (int l = i2; l < size2; l += 2) {
+      res[i] = vec2[l];
+      i++;
+    }
+  } else {
+    for (int l = i1; l < size1; l += 2) {
+      res[i] = vec1[l];
+      i++;
+    }
+  }
+  return res;
+}
+
+std::vector<int> oddBatch_seq(std::vector<int> vec1, std::vector<int> vec2) {
+  int size1 = vec1.size();
+  int size2 = vec2.size();
+  int res_size = size1 / 2 + size2 / 2;
+  std::vector<int> res(res_size);
+  int i1 = 1;
+  int i2 = 1;
+  int i = 0;
+
+  while ((i1 < size1) && (i2 < size2)) {
+    if (vec1[i1] <= vec2[i2]) {
+      res[i] = vec1[i1];
+      i1 += 2;
+    } else {
+      res[i] = vec2[i2];
+      i2 += 2;
+    }
+    i++;
+  }
+
+  if (i1 >= size1) {
+    for (int l = i2; l < size2; l += 2) {
+      res[i] = vec2[l];
+      i++;
+    }
+  } else {
+    for (int l = i1; l < size1; l += 2) {
+      res[i] = vec1[l];
+      i++;
+    }
+  }
+
+  return res;
 }

@@ -58,14 +58,52 @@ VectorInt dijkstra(const Graph& graph, int src, int V) {
   return dist;
 }
 
+VectorInt dijkstra_parallel(const Graph& graph, int src, int V) {
+  VectorInt dist(V, INT_MAX);
+  VectorBool visited(V, false);
+
+  dist[src] = 0;
+
+  for (int count = 0; count < V - 1; count++) {
+    int min = INT_MAX, u = 0;
+#pragma omp parallel
+    {
+      int local_min = INT8_MAX;
+      int local_ind = 0;
+#pragma omp for
+      for (int i = 0; i < V; ++i)
+        if (!visited[i] && dist[i] <= local_min) {
+          local_min = dist[i];
+          local_ind = i;
+        }
+
+      if (local_min < min) {
+        min = local_min;
+        u = local_ind;
+      }
+
+#pragma omp barrier
+
+#pragma omp single
+      { visited[u] = true; }
+
+#pragma omp for
+      for (int v = 0; v < V; v++) {
+        if (!visited[v] && graph[u][v] && dist[u] != INT_MAX &&
+            dist[u] + graph[u][v] < dist[v]) {
+          dist[v] = dist[u] + graph[u][v];
+        }
+      }
+    }
+  }
+  return dist;
+}
+
 Graph sequentialDijkstra(const Graph& graph, int V) {
   Graph result(V, VectorInt(V));
 
   for (int src = 0; src < V; ++src) {
-    VectorInt temp = dijkstra(graph, src, V);
-    for (int i = 0; i < V; ++i) {
-      result[src][i] = temp[i];
-    }
+    result[src] = dijkstra(graph, src, V);
   }
 
   return result;
@@ -74,12 +112,9 @@ Graph sequentialDijkstra(const Graph& graph, int V) {
 Graph parallelDijkstra(const Graph& graph, int V) {
   Graph result(V, VectorInt(V));
 
-  #pragma omp parallel for
+#pragma omp parallel for
   for (int src = 0; src < V; ++src) {
-    VectorInt temp = dijkstra(graph, src, V);
-    for (int i = 0; i < V; ++i) {
-      result[src][i] = temp[i];
-    }
+    result[src] = dijkstra_parallel(graph, src, V);
   }
 
   return result;

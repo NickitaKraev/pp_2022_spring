@@ -49,7 +49,7 @@ int getMax(std::vector<int> *vec) {
   return max;
 }
 
-std::vector<int> EvenOddBatch(std::vector<int> vec1, std::vector<int> vec2) {
+std::vector<int> EvenOddBatch_seq(std::vector<int> vec1, std::vector<int> vec2) {
   int size1 = vec1.size();
   int size2 = vec2.size();
   int size = size1 + size2;
@@ -80,7 +80,7 @@ std::vector<int> EvenOddBatch(std::vector<int> vec1, std::vector<int> vec2) {
   return res;
 }
 
-std::vector<int> evenBatch(std::vector<int> vec1, std::vector<int> vec2) {
+std::vector<int> evenBatch_seq(std::vector<int> vec1, std::vector<int> vec2) {
   int size1 = vec1.size();
   int size2 = vec2.size();
   int res_size = size1 / 2 + size2 / 2 + size1 % 2 + size2 % 2;
@@ -114,7 +114,7 @@ std::vector<int> evenBatch(std::vector<int> vec1, std::vector<int> vec2) {
   return res;
 }
 
-std::vector<int> oddBatch(std::vector<int> vec1, std::vector<int> vec2) {
+std::vector<int> oddBatch_seq(std::vector<int> vec1, std::vector<int> vec2) {
   int size1 = vec1.size();
   int size2 = vec2.size();
   int res_size = size1 / 2 + size2 / 2;
@@ -155,7 +155,7 @@ std::vector<int> GetRandVector(int size) {
   std::mt19937 gen;
   std::vector<int> vec(size);
   for (int i = 0; i < size; i++) {
-    vec[i] = gen() % 100;
+    vec[i] = gen() % 100000;
   }
 
   return vec;

@@ -1,5 +1,6 @@
 // Copyright 2022 Tyrina Anastasia
 #include <gtest/gtest.h>
+#include <omp.h>
 
 #include "./dijkstra.h"
 
@@ -20,7 +21,7 @@ TEST(DIJKSTRA_OMP, TEST_1) {
 }
 
 TEST(DIJKSTRA_OMP, TEST_2) {
-  int V = 10;
+  int V = 5;
   Graph graph = getRandomGraph(V);
   Graph result_sequential = sequentialDijkstra(graph, V);
   Graph result_parallel = parallelDijkstra(graph, V);
@@ -31,7 +32,7 @@ TEST(DIJKSTRA_OMP, TEST_2) {
 }
 
 TEST(DIJKSTRA_OMP, TEST_3) {
-  int V = 20;
+  int V = 10;
   Graph graph = getRandomGraph(V);
   Graph result_sequential = sequentialDijkstra(graph, V);
   Graph result_parallel = parallelDijkstra(graph, V);
@@ -52,14 +53,22 @@ TEST(DIJKSTRA_OMP, TEST_4) {
   }
 }
 
-int V = 50;
+int V = 10;
 
-TEST(DIJKSTRA_OMP, TEST_BIG_OMP) {
+TEST(DIJKSTRA_OMP, TEST_TIME) {
   Graph graph = getRandomGraph(V);
-  Graph result_parallel = parallelDijkstra(graph, V);
-}
 
-TEST(DIJKSTRA_OMP, TEST_BIG_SEQ) {
-  Graph graph = getRandomGraph(V);
-  Graph result_sequential = sequentialDijkstra(graph, V);
+  double start = omp_get_wtime();
+  dijkstra_parallel(graph, 0, V);
+  double end = omp_get_wtime();
+  double ptime = end - start;
+  std::cout << "\tparallel time: " << ptime << "\n";
+
+  start = omp_get_wtime();
+  dijkstra(graph, 0, V);
+  end = omp_get_wtime();
+  double stime = end - start;
+  std::cout << "\tsequential time: " << stime << "\n";
+
+  std::cout << "\tefficiency: " << stime / ptime << "\n";
 }

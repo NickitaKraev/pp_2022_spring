@@ -31,10 +31,27 @@ TEST(Radix_Sort_W_Batcher, Test_Batcher) {
   std::vector<int> part2 = GetRandVector(10);
   std::sort(part1.begin(), part1.end());
   std::sort(part2.begin(), part2.end());
-  std::vector<int> even = evenBatch(part1, part2);
-  std::vector<int> odd = oddBatch(part1, part2);
-  std::vector<int> res = EvenOddBatch(even, odd);
+  std::vector<int> even = evenBatch_seq(part1, part2);
+  std::vector<int> odd = oddBatch_seq(part1, part2);
+  std::vector<int> res = EvenOddBatch_seq(even, odd);
   std::vector<int>stl_mege(20);
+  std::merge(part1.begin(), part1.end(), part2.begin(),
+    part2.end(), stl_mege.begin());
+  ASSERT_EQ(stl_mege, res);
+}
+
+TEST(Radix_Sort_W_Batcher, Test_RadixSort_w_Batcher) {
+  std::vector<int> part1 = GetRandVector(20000);
+  std::vector<int> part2 = GetRandVector(20000);
+  clock_t start = clock();
+  radixSort(&part1);
+  radixSort(&part2);
+  std::vector<int> even = evenBatch_seq(part1, part2);
+  std::vector<int> odd = oddBatch_seq(part1, part2);
+  std::vector<int> res = EvenOddBatch_seq(even, odd);
+  clock_t end = clock();
+  std::cout << "time (ms): " << (end - start) << std::endl;
+  std::vector<int>stl_mege(40000);
   std::merge(part1.begin(), part1.end(), part2.begin(),
     part2.end(), stl_mege.begin());
   ASSERT_EQ(stl_mege, res);
